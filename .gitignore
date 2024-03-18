@@ -9,3 +9,6 @@
 /Pipfile.lock
 /tests.py
 /.venv/
+/build/
+/dist/
+/InstallForge/

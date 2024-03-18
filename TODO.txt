@@ -18,3 +18,4 @@ Todo For V1.1:
 # TODO: Different UI look as option (dark mode vs. light mode). Apply darkmode directly without qdarkstyle
 # TODO: Add option to have separate columns in import file for pos/neg amount
 # TODO: Check compatibility with Linux
+# TODO: Change configuration of columns for account import files
