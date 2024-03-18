@@ -9,10 +9,6 @@ Todo till V1.0:
 # TODO: Good solution for Uncategorized category -> Automatically add new Uncategorized category when creating an account. Set Id to either -account_id or something like account_id + 1000
 # TODO: Account setup: Add field to include/exclude in overall amount
 # TODO: Config file saving: planned expense entries for x months, window size and position, column size for tables. Use ConfigParser
-# TODO: Put on github or similar
-# TODO: Learn about github
-# TODO: Learn about pipenv/requirements.txt etc
-# TODO: Fix Project im PyCharm
 # TODO: Check functionality on first run (probably some data is missing etc)
 
 Todo For V1.1:
