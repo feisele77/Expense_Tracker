@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="eac7f8fc-6152-4cf5-84ff-b9f30a0c1c60" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/Expense Tracker.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ExpensesTracker.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/about.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/expensestracker/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/expensestracker/cfg.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/expensestracker/database.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/expensestracker/importer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/expensestracker/mpl.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/expensestracker/tools.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/DlgAbout.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/DlgAccountEditor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/DlgAccountManager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/DlgCategoryEdit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/DlgCategoryManager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/DlgCategoryMapping.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/DlgCategoryMappingEdit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/DlgPlannedExpenses.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_about.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_account_editor.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_account_manager.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_category_edit.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_category_manager.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_category_mapping.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_category_mapping_edit.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_planned_expenses.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/dlg_planned_expenses_edit.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/mainwin.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_about.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_account_editor.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_account_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_category_edit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_category_manager.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_category_mapping.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_dlg_category_mapping_edit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_dlg_planned_expenses_edit.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_mainwin.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ui/ui_planned_expenses.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 7
+}]]></component>
+  <component name="ProjectId" id="2ds50RmTd3cg53VAY7fzeHPPrwT" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+    <option name="showMembers" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.ExpensesTracker.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "master",
+    "ignore.virus.scanning.warn.message": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-d68999036c7f-d3b881c8e49f-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-233.14475.56" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="eac7f8fc-6152-4cf5-84ff-b9f30a0c1c60" name="Changes" comment="" />
+      <created>1710783722001</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1710783722001</updated>
+    </task>
+    <servers />
+  </component>
+</project>
