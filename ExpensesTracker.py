@@ -307,11 +307,8 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         """ Populates the pivot table with the data from the selected account id, within the
         limits of the given start and end date. Displays the main+sub categories or only the main categories
         depending on the setting in the UI. """
-        # start_date = datetime(2024, 1, 1)
-        # end_date = datetime(2024, 12, 31)
         start_date = self.dat_pivot_datefrom.dateTime()
         end_date = self.dat_pivot_dateto.dateTime()
-        # self.tbl_pivot.clearContents()
         self.tbl_pivot.clear()
         pivotdata = self.db.get_expenses_for_pivot(self.get_current_account_id(), start_date, end_date)
         if pivotdata:
@@ -333,7 +330,6 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             self.tbl_pivot.setColumnCount(len(columns))
             self.tbl_pivot.setHorizontalHeaderLabels(columns)
             # Hide the sum column
-            # self.tbl_pivot.setColumnHidden(len(columns)-1, True)
             self.tbl_pivot.setRowCount(len(pivot_records))
             for idx_row, row in enumerate(pivot_records):
                 for idx_col, col in enumerate(row):
@@ -422,7 +418,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     app_icon = QIcon()
-    app_icon.addFile(r'img\app.ico', QSize(64, 64))
+    app_icon.addFile(r'res\app.ico', QSize(64, 64))
     app.setWindowIcon(app_icon)
     win = MainWin()
     win.show()
