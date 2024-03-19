@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QDialog
 
-from ui.ui_dlg_category_mapping_edit import Ui_dlg_category_mappings
+from ui.ui_category_mapping_edit import Ui_dlg_category_mappings
 from expensestracker.database import Database, CategoryMappings
 
 

@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QDialog, QAbstractItemView, QTableWidgetItem
 
 from ui.ui_planned_expenses import Ui_dlg_planned_expenses
 from expensestracker.database import Database
+from ui.DlgPlannedExpensesEdit import DlgPlannedExpensesEdit
 
 
 class DlgPlannedExpenses(QDialog, Ui_dlg_planned_expenses):
@@ -26,8 +27,11 @@ class DlgPlannedExpenses(QDialog, Ui_dlg_planned_expenses):
         self.tbl_planned_expenses.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         self.cmb_accounts.currentIndexChanged.connect(self.account_selection_changed)
-        # self.tbl_planned_expenses.itemSelectionChanged.connect(self.mapping_selection_changed)
+        # self.tbl_planned_expenses.itemSelectionChanged.connect(self.planned_expense_selection_changed)
         self.btn_close.clicked.connect(self.close)
+        self.btn_new.clicked.connect(self.new_planned_expense)
+        self.btn_delete.clicked.connect(self.delete_planned_expense)
+        self.btn_edit.clicked.connect(self.edit_planned_expense)
 
         self.account_selection_changed()
 
@@ -42,3 +46,21 @@ class DlgPlannedExpenses(QDialog, Ui_dlg_planned_expenses):
             self.tbl_planned_expenses.setItem(idx, 1, QTableWidgetItem(planned_expense.PlannedExpenses.name))
             self.tbl_planned_expenses.setItem(idx, 2, QTableWidgetItem(planned_expense.ExpenseCategories.main_category))
             self.tbl_planned_expenses.setItem(idx, 3, QTableWidgetItem(planned_expense.ExpenseCategories.sub_category))
+
+    def new_planned_expense(self):
+        dlg = DlgPlannedExpensesEdit(self.current_account.id, None)
+        dlg.exec()
+        self.account_selection_changed()
+
+    def edit_planned_expense(self):
+        if self.tbl_planned_expenses.selectedItems():
+            planned_expense_id = int(self.tbl_planned_expenses.item(self.tbl_planned_expenses.selectedItems()[0].row(), 0).text())
+            dlg = DlgPlannedExpensesEdit(self.current_account.id, planned_expense_id)
+            dlg.exec()
+            self.account_selection_changed()
+
+    def delete_planned_expense(self):
+        if self.tbl_planned_expenses.selectedItems():
+            planned_expense_id = int(self.tbl_planned_expenses.item(self.tbl_planned_expenses.selectedItems()[0].row(), 0).text())
+            self.db.delete_planned_expense(planned_expense_id)
+            self.account_selection_changed()

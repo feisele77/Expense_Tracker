@@ -28,16 +28,12 @@ class DlgCategoryMapping(QDialog, Ui_dlg_category_mappings):
         self.tbl_mappings.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         self.cmb_accounts.currentIndexChanged.connect(self.account_selection_changed)
-        self.tbl_mappings.itemSelectionChanged.connect(self.mapping_selection_changed)
         self.btn_close.clicked.connect(self.close)
         self.btn_new.clicked.connect(self.new_category_mapping)
         self.btn_delete.clicked.connect(self.delete_category_mapping)
         self.btn_edit.clicked.connect(self.edit_category_mapping)
 
         self.account_selection_changed()
-
-    def mapping_selection_changed(self):
-        pass
 
     def account_selection_changed(self):
         idx = self.cmb_accounts.currentIndex()

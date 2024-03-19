@@ -3,7 +3,6 @@ Todo till V1.0:
 # TODO: Add security question when deleting entries
 # TODO: Category Manager
 # TODO: Account Manager edit
-# TODO: Planned Expenses Dialog Edit/New/Delete
 # TODO: Settings dialog
 # TODO: Charts by month and amount
 # TODO: Good solution for Uncategorized category -> Automatically add new Uncategorized category when creating an account. Set Id to either -account_id or something like account_id + 1000

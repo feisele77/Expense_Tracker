@@ -301,6 +301,20 @@ class Database:
         """ Returns all entries for planned expenses. """
         return self.session.query(PlannedExpenses).filter_by(active=True)
 
+    def get_planned_expense_for_id(self, planned_expense_id: int) -> PlannedExpenses | None:
+        """ Returns the Planned Expense of the given id. """
+        return self.session.query(PlannedExpenses).filter_by(id=planned_expense_id).first()
+
+    def upsert_planned_expense(self, planned_expense):
+        """ Adds a new or changes an existing planned expense records to the database. """
+        self.session.add(planned_expense)
+        self.session.commit()
+
+    def delete_planned_expense(self, planned_expense_id: int) -> None:
+        """ Deletes the given account id from the database. """
+        self.session.execute(delete(PlannedExpenses).where(PlannedExpenses.id == planned_expense_id))
+        self.session.commit()
+
     def does_planned_expense_exist(self, account_id: int, planned_expense_id: int, expense_date: datetime) -> bool:
         """ Returns True if a planned expense already exists for the given account, planned_expense_id and at the given date. """
         planned_expense = self.session.query(Expenses).filter_by(account_id=account_id).filter_by(

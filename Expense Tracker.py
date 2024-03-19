@@ -289,10 +289,10 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             self.tbl_expenses.setItem(idx, 2, QTableWidgetItem(row.Expenses.name))
             self.tbl_expenses.setItem(idx, 3, QTableWidgetItem(row.Expenses.purpose))
             self.tbl_expenses.setItem(idx, 4, QTableWidgetItem(row.Expenses.iban))
-            self.tbl_expenses.setItem(idx, 5, QTableWidgetItem(str(row.Expenses.amount)))
+            self.tbl_expenses.setItem(idx, 5, QTableWidgetItem(f"{row.Expenses.amount} €"))
             self.tbl_expenses.setItem(idx, 6, QTableWidgetItem(row.ExpenseCategories.main_category))
             self.tbl_expenses.setItem(idx, 7, QTableWidgetItem(row.ExpenseCategories.sub_category))
-            self.tbl_expenses.setItem(idx, 8, QTableWidgetItem(str(row.Expenses.comment)))
+            self.tbl_expenses.setItem(idx, 8, QTableWidgetItem(f'{row.Expenses.comment}'))
             self.tbl_expenses.setItem(idx, 9, QTableWidgetItem(str(row.Expenses.future)))
             # Set a different background colour for planned future expenses
             if row.Expenses.future:
