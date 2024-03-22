@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QAbstractItemView, QTableWidgetItem
+from PyQt6.QtWidgets import QDialog, QAbstractItemView, QTableWidgetItem, QMessageBox
 
 from ui.ui_account_manager import Ui_dlg_account_manager
 from ui import DlgAccountEditor
@@ -46,9 +46,11 @@ class DlgAccountManager(QDialog, Ui_dlg_account_manager):
 
     def deleteAccount(self):
         if self.tbl_accounts.selectedItems():
-            account_id = int(self.tbl_accounts.item(self.tbl_accounts.selectedItems()[0].row(), 0).text())
-            self.db.delete_account(account_id)
-        self.populate_table()
+            confirmation = QMessageBox.question(self, 'Delete account?', 'Do you really want to delete the selected account?')
+            if confirmation == QMessageBox.StandardButton.Yes:
+                account_id = int(self.tbl_accounts.item(self.tbl_accounts.selectedItems()[0].row(), 0).text())
+                self.db.delete_account(account_id)
+            self.populate_table()
 
     def newAccount(self):
         dlg = DlgAccountEditor.DlgAccountEditor(account_id=None)

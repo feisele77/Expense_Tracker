@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QAbstractItemView, QTableWidgetItem
+from PyQt6.QtWidgets import QDialog, QAbstractItemView, QTableWidgetItem, QMessageBox
 
 from ui.ui_category_mapping import Ui_dlg_category_mappings
 from ui.DlgCategoryMappingEdit import DlgCategoryMappingEdit
@@ -50,9 +50,11 @@ class DlgCategoryMapping(QDialog, Ui_dlg_category_mappings):
 
     def delete_category_mapping(self):
         if self.tbl_mappings.selectedItems():
-            mapping_id = int(self.tbl_mappings.item(self.tbl_mappings.selectedItems()[0].row(), 0).text())
-            self.db.delete_category_mapping(mapping_id)
-        self.account_selection_changed()
+            confirmation = QMessageBox.question(self, 'Delete category mapping?', 'Do you really want to delete the selected category mapping?')
+            if confirmation == QMessageBox.StandardButton.Yes:
+                mapping_id = int(self.tbl_mappings.item(self.tbl_mappings.selectedItems()[0].row(), 0).text())
+                self.db.delete_category_mapping(mapping_id)
+            self.account_selection_changed()
 
     def new_category_mapping(self):
         dlg = DlgCategoryMappingEdit(self.current_account.id, None)

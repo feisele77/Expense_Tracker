@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QAbstractItemView, QTableWidgetItem
+from PyQt6.QtWidgets import QDialog, QAbstractItemView, QTableWidgetItem, QMessageBox
 
 from ui.ui_planned_expenses import Ui_dlg_planned_expenses
 from expensestracker.database import Database
@@ -60,7 +60,9 @@ class DlgPlannedExpenses(QDialog, Ui_dlg_planned_expenses):
             self.account_selection_changed()
 
     def delete_planned_expense(self):
-        if self.tbl_planned_expenses.selectedItems():
-            planned_expense_id = int(self.tbl_planned_expenses.item(self.tbl_planned_expenses.selectedItems()[0].row(), 0).text())
-            self.db.delete_planned_expense(planned_expense_id)
-            self.account_selection_changed()
+        confirmation = QMessageBox.question(self, 'Delete planned expense?', 'Do you really want to delete the selected planned expense?')
+        if confirmation == QMessageBox.StandardButton.Yes:
+            if self.tbl_planned_expenses.selectedItems():
+                planned_expense_id = int(self.tbl_planned_expenses.item(self.tbl_planned_expenses.selectedItems()[0].row(), 0).text())
+                self.db.delete_planned_expense(planned_expense_id)
+                self.account_selection_changed()

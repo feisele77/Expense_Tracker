@@ -1,5 +1,8 @@
 from datetime import datetime
+import os
+import shutil
 import babel.numbers
+from expensestracker import cfg
 
 
 def clean_amount(amount_str: str) -> str:
@@ -27,3 +30,10 @@ def convert_date(date_str: str, date_format: str) -> datetime:
     }
     return datetime.strptime(date_str, date_formats[date_format])
 
+
+def make_db_backup():
+    """ Makes a copy of the database with the current timestamp. """
+    timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+    database = os.path.join(cfg.get_data_dir(), 'expenses.db')
+    database_copy = os.path.join(cfg.get_data_dir(), f'expenses_{timestamp}.db')
+    shutil.copy(database, database_copy)

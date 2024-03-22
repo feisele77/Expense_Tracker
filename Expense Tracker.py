@@ -4,14 +4,14 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from PyQt6.QtGui import QColor, QIcon
-from PyQt6.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QFileDialog, QTableWidgetItem, QTabWidget
+from PyQt6.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QFileDialog, QTableWidgetItem, QTabWidget, QMessageBox
 from PyQt6.QtCore import QSize, Qt
 import pandas
 import numpy
 import qdarkstyle
 
 from ui import ui_mainwin, DlgAccountManager, DlgCategoryManager, DlgCategoryMapping, DlgPlannedExpenses, DlgAbout
-from expensestracker import importer, cfg, mpl
+from expensestracker import importer, cfg, mpl, tools
 from expensestracker.database import Database, Expenses
 
 __version__ = 'v20240318'
@@ -39,7 +39,6 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.tbl_expenses.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.tbl_pivot.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.tbl_pivot.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-        self.tbl_pivot.setAlternatingRowColors(True)
 
         # Set date range for pivot to current year
         self.dat_pivot_datefrom.setDate(datetime(datetime.now().year, 1, 1))
@@ -189,9 +188,12 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         return current_idx
 
     def delete_selected_record(self):
-        expense_id = self.current_expense.id
-        self.db.delete_expense(expense_id)
-        self.account_selection_changed()
+        """ Deletes the record selected in the expenses table. """
+        confirmation = QMessageBox.question(self, 'Delete expense?', 'Do you really want to delete this expense?')
+        if confirmation == QMessageBox.StandardButton.Yes:
+            expense_id = self.current_expense.id
+            self.db.delete_expense(expense_id)
+            self.account_selection_changed()
 
     def get_current_account_id(self):
         """ Returns the account id of the account that is currently selected on the main screen. """
@@ -338,7 +340,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
                     else:
                         text = f'{row[idx_col]}'
                     item = QTableWidgetItem(text)
-                    item.setTextAlignment(Qt.AlignmentFlag.AlignRight)
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight)
                     self.tbl_pivot.setItem(idx_row, idx_col, item)
 
     def get_earliest_new_planned_expense_date(self, start_date_expense: datetime, day_of_month: int):
@@ -415,6 +417,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
 
 
 if __name__ == '__main__':
+    tools.make_db_backup()
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     app_icon = QIcon()

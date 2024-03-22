@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QDialog, QTableWidgetItem, QAbstractItemView
+from PyQt6.QtWidgets import QDialog, QTableWidgetItem, QAbstractItemView, QMessageBox
 from PyQt6.QtCore import QSize
 
 from ui.ui_category_manager import Ui_dlg_category_manager
@@ -51,9 +51,11 @@ class DlgCategoryManager(QDialog, Ui_dlg_category_manager):
         self.account_selection_changed()
 
     def delete_category(self):
-        category_id = int(self.tbl_categories.item(self.tbl_categories.selectedItems()[0].row(), 0).text())
-        self.db.delete_category(category_id)
-        self.account_selection_changed()
+        confirmation = QMessageBox.question(self, 'Delete category?', 'Do you really want to delete the selected category?')
+        if confirmation == QMessageBox.StandardButton.Yes:
+            category_id = int(self.tbl_categories.item(self.tbl_categories.selectedItems()[0].row(), 0).text())
+            self.db.delete_category(category_id)
+            self.account_selection_changed()
 
     def account_selection_changed(self):
         idx = self.cmb_accounts.currentIndex()

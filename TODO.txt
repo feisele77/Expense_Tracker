@@ -1,14 +1,14 @@
 Todo till V1.0:
 # TODO: Accounts: Add option for no import, only manual edit. Check that option when Import is selected (or deactivate import option?)
-# TODO: Add security question when deleting entries
 # TODO: Category Manager
 # TODO: Account Manager edit
-# TODO: Settings dialog
+# TODO: Settings dialog -> Archive import files, number of months for planned expenses, duplicate check during import
 # TODO: Charts by month and amount
 # TODO: Good solution for Uncategorized category -> Automatically add new Uncategorized category when creating an account. Set Id to either -account_id or something like account_id + 1000
 # TODO: Account setup: Add field to include/exclude in overall amount
 # TODO: Config file saving: planned expense entries for x months, window size and position, column size for tables. Use ConfigParser
 # TODO: Check functionality on first run (probably some data is missing etc)
+# TODO: Archive imported expense files, if setting is turned on - in subfolder of data folder
 
 Todo For V1.1:
 # TODO: Planned Expenses matching: Add different options on how to match: Which fields (date, amount, category), or name matches like in the category mapping
@@ -18,3 +18,4 @@ Todo For V1.1:
 # TODO: Add option to have separate columns in import file for pos/neg amount
 # TODO: Check compatibility with Linux
 # TODO: Change configuration of columns for account import files
+# TODO: CSV Export of expenses, import
