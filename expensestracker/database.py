@@ -7,16 +7,9 @@ from typing import List, Type
 from sqlalchemy import String, Float, Boolean, Integer, DateTime, ForeignKey, create_engine, delete
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
 
-from expensestracker import cfg
-
+from expensestracker import tools
 
 DB_FILENAME = 'expenses.db'
-data_dir = cfg.get_data_dir()
-database_path = os.path.join(data_dir, DB_FILENAME)
-if not os.path.exists(data_dir):
-    os.mkdir(data_dir)
-
-engine = create_engine(f'sqlite:///{database_path}')
 
 
 class Base(DeclarativeBase):
@@ -30,7 +23,7 @@ class Accounts(Base):
     name: Mapped[str] = mapped_column(String(40), nullable=False)
     iban: Mapped[str] = mapped_column(String(32), nullable=True)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
-    type: Mapped[str] = mapped_column(String(15), nullable=True)
+    type: Mapped[str] = mapped_column(String(15), nullable=False)
     balance: Mapped[float] = mapped_column(Float, nullable=False)
     filetype: Mapped[str] = mapped_column(String(10), nullable=False)
     delimiter: Mapped[str] = mapped_column(String(1), nullable=True)
@@ -44,7 +37,7 @@ class Accounts(Base):
     col_amount: Mapped[int] = mapped_column(Integer, nullable=True)
     dateformat: Mapped[str] = mapped_column(String(30), nullable=True)
     numberformat: Mapped[str] = mapped_column(String(10), nullable=True)
-    include_in_sum: Mapped[bool] = mapped_column(Boolean)
+    include_in_sum: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
 
 class Expenses(Base):
@@ -95,13 +88,12 @@ class PlannedExpenses(Base):
     active: Mapped[bool] = mapped_column(Boolean)
 
 
-Base.metadata.create_all(engine)
-
-
 class Database:
     """ Class that handles all interactions - queries, inserts, updates, deletes - with the database. """
     def __init__(self):
-        self.session = Session(engine)
+        self.engine = create_engine(f'sqlite:///{os.path.join(tools.get_data_dir(), DB_FILENAME)}')
+        Base.metadata.create_all(self.engine)
+        self.session = Session(self.engine)
 
     def disconnect(self):
         """ Closes the database session created upon object instantiation. """
@@ -120,11 +112,24 @@ class Database:
         """ Adds a new or updates an existing account to the database. """
         self.session.add(account)
         self.session.commit()
+        return account.id
 
     def delete_account(self, account_id: int) -> None:
-        """ Deletes the given account id from the database. """
+        """ Deletes the given account id together with all saved data for the account from the database. """
+        self.session.execute(delete(Expenses).where(Expenses.account_id == account_id))
+        self.session.execute(delete(ExpenseCategories).where(ExpenseCategories.account_id == account_id))
+        self.session.execute(delete(PlannedExpenses).where(PlannedExpenses.account_id == account_id))
+        self.session.execute(delete(CategoryMappings).where(CategoryMappings.account_id == account_id))
         self.session.execute(delete(Accounts).where(Accounts.id == account_id))
         self.session.commit()
+
+    def is_import_enabled_for_account(self, account_id: int) -> bool:
+        """ Returns true if the import filetype for the given account is something other than 'No Import'. """
+        account = self.get_account_by_id(account_id)
+        if account.filetype == 'No Import':
+            return False
+        else:
+            return True
 
     # Expenses
     def get_expenses_for_account(self, account_id):
@@ -221,8 +226,9 @@ class Database:
             expenses = self.get_expenses_for_account(account.id)
             expense_amount_current = sum([row.Expenses.amount for row in expenses if (row.Expenses.date <= datetime.now()) and (not row.Expenses.future)])
             expense_amount_monthend = sum([row.Expenses.amount for row in expenses if row.Expenses.date <= date_month_end])
-            current_balance_all = current_balance_all + starting_balance + expense_amount_current
-            monthend_balance_all = monthend_balance_all + starting_balance + expense_amount_monthend
+            if account.include_in_sum:
+                current_balance_all = current_balance_all + starting_balance + expense_amount_current
+                monthend_balance_all = monthend_balance_all + starting_balance + expense_amount_monthend
             if account.id == account_id:
                 current_balance_account = starting_balance + expense_amount_current
                 monthend_balance_account = starting_balance + expense_amount_monthend
@@ -237,6 +243,17 @@ class Database:
     def get_category_by_id(self, category_id: int) -> ExpenseCategories | None:
         """ Returns the expense category data for the given id. """
         return self.session.query(ExpenseCategories).filter_by(id=category_id).first()
+
+    def add_default_category_for_account(self, account_id: int):
+        """ Adds the default 'Uncategorized' category for a new account. """
+        default_category = ExpenseCategories(
+            id=1000 + account_id,
+            account_id=account_id,
+            main_category='Uncategorized',
+            sub_category='Uncategorized'
+        )
+        self.session.add(default_category)
+        self.session.commit()
 
     def upsert_category(self, new_category: ExpenseCategories) -> None:
         """ Adds a new or updates an exisitng Expense Category. """
@@ -340,17 +357,16 @@ class Database:
         Matches if the planned expense exists in the same month and under the same category.auto_decrement must be True. """
         min_date = datetime(year=new_expense.date.year, month=new_expense.date.month, day=1)
         max_date = min_date + relativedelta(months=1) - relativedelta(days=1)
-        with Session(engine) as session:
-            matching_planned_expense = session.query(Expenses).filter_by(
-                category_id=new_expense.category_id).filter(
-                Expenses.date >= min_date).filter(
-                Expenses.date <= max_date).filter(
-                Expenses.planned_expense_id.is_not(None)).first()
-            if matching_planned_expense:
-                planned_expense = session.query(PlannedExpenses).filter_by(id=matching_planned_expense.planned_expense_id).filter_by(auto_decrement=True).first()
-                if planned_expense:
-                    return matching_planned_expense
-                else:
-                    return None
+        matching_planned_expense = self.session.query(Expenses).filter_by(
+            category_id=new_expense.category_id).filter(
+            Expenses.date >= min_date).filter(
+            Expenses.date <= max_date).filter(
+            Expenses.planned_expense_id.is_not(None)).first()
+        if matching_planned_expense:
+            planned_expense = self.session.query(PlannedExpenses).filter_by(id=matching_planned_expense.planned_expense_id).filter_by(auto_decrement=True).first()
+            if planned_expense:
+                return matching_planned_expense
             else:
                 return None
+        else:
+            return None

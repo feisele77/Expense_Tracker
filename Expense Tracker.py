@@ -10,7 +10,7 @@ import pandas
 import numpy
 import qdarkstyle
 
-from ui import ui_mainwin, DlgAccountManager, DlgCategoryManager, DlgCategoryMapping, DlgPlannedExpenses, DlgAbout
+from ui import ui_mainwin, DlgAccountManager, DlgCategoryManager, DlgCategoryMapping, DlgPlannedExpenses, DlgAbout, DlgSetting
 from expensestracker import importer, cfg, mpl, tools
 from expensestracker.database import Database, Expenses
 
@@ -22,21 +22,29 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.cfg = cfg.Config()
 
         # Additional UI setup
-        self.resize(QSize(int(cfg.get_value('mainwin', 'width')), int(cfg.get_value('mainwin', 'height'))))
+        self.resize(QSize(int(self.cfg.get_value('mainwin', 'width')),
+                          int(self.cfg.get_value('mainwin', 'height'))))
         self.spn_amount.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.dat_expense_date.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.tabwidget.setTabPosition(QTabWidget.TabPosition.West)
 
-        column_widths = [20, 80, 250, 400, 170, 80, 150, 150, 250]
-        for idx, width in enumerate(column_widths):
-            self.tbl_expenses.setColumnWidth(idx, width)
-        # Hide the id and future columns
+        # Setup the expense table
+        self.tbl_expenses.setColumnWidth(1, int(self.cfg.get_value('expense_table', 'col_date')))
+        self.tbl_expenses.setColumnWidth(2, int(self.cfg.get_value('expense_table', 'col_name')))
+        self.tbl_expenses.setColumnWidth(3, int(self.cfg.get_value('expense_table', 'col_purpose')))
+        self.tbl_expenses.setColumnWidth(4, int(self.cfg.get_value('expense_table', 'col_iban')))
+        self.tbl_expenses.setColumnWidth(5, int(self.cfg.get_value('expense_table', 'col_amount')))
+        self.tbl_expenses.setColumnWidth(6, int(self.cfg.get_value('expense_table', 'col_main_category')))
+        self.tbl_expenses.setColumnWidth(7, int(self.cfg.get_value('expense_table', 'col_sub_category')))
+        self.tbl_expenses.setColumnWidth(8, int(self.cfg.get_value('expense_table', 'col_comment')))
         self.tbl_expenses.setColumnHidden(0, True)
-        self.tbl_expenses.setColumnHidden(9, True)
         self.tbl_expenses.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.tbl_expenses.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+
+        # Setup the pivot table
         self.tbl_pivot.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.tbl_pivot.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
@@ -44,22 +52,17 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.dat_pivot_datefrom.setDate(datetime(datetime.now().year, 1, 1))
         self.dat_pivot_dateto.setDate(datetime(datetime.now().year, 12, 31))
 
+        # Setup the charts tab
         self.chart_canvas = mpl.MPLCanvas(self, width=10, height=7, dpi=100)
         self.chart_layout.addChildWidget(self.chart_canvas)
 
         # Variable initialisation
         self.db = Database()
-        self.accounts = self.db.get_all_accounts()
-        self.current_account_id = self.get_current_account_id()
         self.expenses = None
         self.expense_categories = None
         self.expense_categories_mapping = []
         self.current_expense = None
-        self.current_account = None
         self.current_index = None
-
-        for account in self.accounts:
-            self.cmb_accounts.addItem(account.name)
 
         # Signals & Slots
         self.tbl_expenses.itemSelectionChanged.connect(self.expense_selection_changed)
@@ -70,35 +73,72 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.actionCategory_Mappings.triggered.connect(self.open_categorymapping)
         self.actionPlanned_Expenses.triggered.connect(self.open_plannedexpenses)
         self.actionAbout.triggered.connect(self.about_dlg)
+        self.actionSettings.triggered.connect(self.open_settings)
         self.cmb_accounts.currentIndexChanged.connect(self.account_selection_changed)
         self.btn_del_record.clicked.connect(self.delete_selected_record)
-        self.chk_pivot_show_sub_categories.stateChanged.connect(self.populate_pivot)
+        self.chk_pivot_show_sub_categories.stateChanged.connect(self.update_pivot)
         self.btn_new_record.clicked.connect(self.new_record)
         self.btn_save_record.clicked.connect(self.save_record)
         self.btn_pivot_apply.clicked.connect(self.account_selection_changed)
 
+        # Data initialization
+        self.deactivate_actions_if_no_accounts()
+        self.update_account_selector()
         self.process_planned_expenses()
-
         self.account_selection_changed()
-
         self.draw_charts()
+
+    def get_current_account_id(self):
+        """ Returns the account id of the account that is currently selected on the main screen. """
+        try:
+            return self.cmb_accounts.currentData()
+        except IndexError:
+            return None
+
+    def deactivate_actions_if_no_accounts(self):
+        """ Deactivate certain actions if no account exists. """
+        if not self.db.get_all_accounts():
+            self.actionPlanned_Expenses.setEnabled(False)
+            self.actionCategory_Mappings.setEnabled(False)
+            self.actionCategory_Manager.setEnabled(False)
+            self.actionImport_expenses.setEnabled(False)
+        else:
+            self.actionPlanned_Expenses.setEnabled(True)
+            self.actionCategory_Mappings.setEnabled(True)
+            self.actionCategory_Manager.setEnabled(True)
+            self.actionImport_expenses.setEnabled(True)
 
     def account_selection_changed(self):
         """ Trigged when the user changes the account selection on the main screen. """
-        self.current_account_id = self.get_current_account_id()
-        self.current_account = self.db.get_account_by_id(self.current_account_id)
-        self.populate_expense_table()
-        self.populate_pivot()
-        current_balance_all, current_balance_account, monthend_balance_all, monthend_balance_account = self.db.get_balances(self.current_account_id)
+        # Activate or deactivate the import functionality depending on the account setting for file import
+        try:
+            if self.db.is_import_enabled_for_account(self.get_current_account_id()):
+                self.actionImport_expenses.setEnabled(True)
+            else:
+                self.actionImport_expenses.setEnabled(False)
+        except AttributeError:
+            self.actionImport_expenses.setEnabled(False)
+        # Update the entries in the expense table, pivot and category dropdown for the new account selection
+        self.update_expense_table()
+        self.update_pivot()
+        self.update_categories()
+        # Update the fields showing the account balance
+        current_balance_all, current_balance_account, monthend_balance_all, monthend_balance_account = self.db.get_balances(self.get_current_account_id())
         self.txt_current_balance.setText(f'{current_balance_account} €')
         self.txt_month_end_balance.setText(f'{monthend_balance_account} €')
         self.txt_current_balance_all.setText(f'{current_balance_all} €')
         self.txt_month_end_balance_all.setText(f'{monthend_balance_all} €')
-        self.update_categories()
+
+    def update_account_selector(self):
+        """ Updates the dropdown box with the accounts. Triggered after changes to the existing accounts. """
+        accounts = self.db.get_all_accounts()
+        self.cmb_accounts.clear()
+        for account in accounts:
+            self.cmb_accounts.addItem(account.name, userData=account.id)
 
     def update_categories(self):
         """ Updates the available expense categories in the expense edit combobox. """
-        self.expense_categories = self.db.get_categories_for_account(self.current_account_id)
+        self.expense_categories = self.db.get_categories_for_account(self.get_current_account_id())
         self.cmb_category.clear()
         self.expense_categories_mapping = dict()
         for idx, category in enumerate(self.expense_categories):
@@ -161,7 +201,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
     def save_new_record(self):
         """ Save a new record to the database. """
         expense = Expenses()
-        expense.account_id = self.current_account_id
+        expense.account_id = self.get_current_account_id()
         expense.name = self.txt_name.text()
         expense.iban = self.txt_iban.text()
         expense.purpose = self.txt_purpose.toPlainText()
@@ -195,10 +235,6 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             self.db.delete_expense(expense_id)
             self.account_selection_changed()
 
-    def get_current_account_id(self):
-        """ Returns the account id of the account that is currently selected on the main screen. """
-        return self.accounts[self.cmb_accounts.currentIndex()].id
-
     def scroll_to_current_date(self):
         """ Scrolls the expense table to the first item that is of a later date than today, or to the last item. """
         today = datetime.today()
@@ -218,6 +254,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         # import_def = database.get_importdef(self.get_current_account_id())
         import_def = self.db.get_account_by_id(self.get_current_account_id())
         import_data = None
+        filename = None
         if import_def.filetype == 'CSV':
             filename = QFileDialog.getOpenFileName(self, 'Select the expenses file to import...', '.', '*.csv')
             if filename[0]:
@@ -228,6 +265,8 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             if filename[0]:
                 imp = importer.ImporterExcel(filename[0], import_def)
                 import_data = imp.parse_data()
+        if self.cfg.get_value('general', 'archive_imported_files') == '1' and filename[0]:
+            tools.archive_import_file(filename[0])
         return import_data
 
     def import_expenses(self):
@@ -278,7 +317,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.account_selection_changed()
         self.statusbar.showMessage(f'{imported_expenses} new expenses were imported, {skipped_duplicates} duplicates were skipped, {deleted_planned_expenses} planned expense were replaced...')
 
-    def populate_expense_table(self):
+    def update_expense_table(self):
         """ Populates the expenses table with the data for the given account id.
         Scrolls to the given index if given, otherwise scrolls to the last entry. """
         self.tbl_expenses.clearContents()
@@ -305,7 +344,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         else:
             self.scroll_to_current_date()
 
-    def populate_pivot(self):
+    def update_pivot(self):
         """ Populates the pivot table with the data from the selected account id, within the
         limits of the given start and end date. Displays the main+sub categories or only the main categories
         depending on the setting in the UI. """
@@ -364,7 +403,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         planned_expenses = self.db.get_all_planned_expenses()
         for planned_expense in planned_expenses:
             next_planned_expense_date = self.get_earliest_new_planned_expense_date(planned_expense.start_date, planned_expense.day, )
-            for num_planned_months in range(int(cfg.get_value('general', 'planned_expenses_months'))):
+            for num_planned_months in range(int(self.cfg.get_value('general', 'planned_expenses_months'))):
                 planned_expense_date = next_planned_expense_date + relativedelta(months=num_planned_months)
                 expense_exists = self.db.does_planned_expense_exist(account_id=planned_expense.account_id, planned_expense_id=planned_expense.id, expense_date=planned_expense_date)
                 if not expense_exists:
@@ -393,8 +432,12 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.chart_canvas.axes.plot(pivot)
 
     def open_accountmanager(self):
+        """ Open the account manager dialog. Refresh the account selector, actions and expense/pivot tables. """
         dlg = DlgAccountManager.DlgAccountManager()
         dlg.exec()
+        self.update_account_selector()
+        self.account_selection_changed()
+        self.deactivate_actions_if_no_accounts()
 
     def open_categorymanager(self):
         dlg = DlgCategoryManager.DlgCategoryManager()
@@ -408,16 +451,39 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         dlg = DlgPlannedExpenses.DlgPlannedExpenses()
         dlg.exec()
 
+    def open_settings(self):
+        dlg = DlgSetting.DlgSettings()
+        dlg.exec()
+
     def about_dlg(self):
         dlg = DlgAbout.DlgAbout(__version__)
         dlg.exec()
 
     def quit(self):
+        """ Save configuration values and quit application. """
+        # Save window configuration
+        self.cfg.set_value('mainwin', 'height', str(self.height()))
+        self.cfg.set_value('mainwin', 'width', str(self.width()))
+        self.cfg.set_value('mainwin', 'x', str(self.pos().x()))
+        self.cfg.set_value('mainwin', 'y', str(self.pos().y()))
+        # Save expenses table configuration
+        self.cfg.set_value('expense_table', 'col_date', str(self.tbl_expenses.columnWidth(1)))
+        self.cfg.set_value('expense_table', 'col_name', str(self.tbl_expenses.columnWidth(2)))
+        self.cfg.set_value('expense_table', 'col_purpose', str(self.tbl_expenses.columnWidth(3)))
+        self.cfg.set_value('expense_table', 'col_iban', str(self.tbl_expenses.columnWidth(4)))
+        self.cfg.set_value('expense_table', 'col_amount', str(self.tbl_expenses.columnWidth(5)))
+        self.cfg.set_value('expense_table', 'col_main_category', str(self.tbl_expenses.columnWidth(6)))
+        self.cfg.set_value('expense_table', 'col_sub_category', str(self.tbl_expenses.columnWidth(7)))
+        self.cfg.set_value('expense_table', 'col_comment', str(self.tbl_expenses.columnWidth(8)))
+
+        self.cfg.save_config()
+        self.db.disconnect()
         app.quit()
 
 
 if __name__ == '__main__':
-    tools.make_db_backup()
+    # tools.make_db_backup()
+    tools.create_app_folders()
     app = QApplication(sys.argv)
     app.setStyleSheet(qdarkstyle.load_stylesheet(qt_api='pyqt6'))
     app_icon = QIcon()

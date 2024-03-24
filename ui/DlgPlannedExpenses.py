@@ -19,6 +19,12 @@ class DlgPlannedExpenses(QDialog, Ui_dlg_planned_expenses):
         for account in self.accounts:
             self.cmb_accounts.addItem(account.name, userData=account.id)
 
+        if not self.accounts:
+            self.btn_new.setEnabled(False)
+
+        self.btn_edit.setEnabled(False)
+        self.btn_delete.setEnabled(False)
+
         self.tbl_planned_expenses.setColumnHidden(0, True)
         self.tbl_planned_expenses.setColumnWidth(1, 200)
         self.tbl_planned_expenses.setColumnWidth(2, 200)
@@ -27,7 +33,7 @@ class DlgPlannedExpenses(QDialog, Ui_dlg_planned_expenses):
         self.tbl_planned_expenses.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
 
         self.cmb_accounts.currentIndexChanged.connect(self.account_selection_changed)
-        # self.tbl_planned_expenses.itemSelectionChanged.connect(self.planned_expense_selection_changed)
+        self.tbl_planned_expenses.itemSelectionChanged.connect(self.table_selection_changed)
         self.btn_close.clicked.connect(self.close)
         self.btn_new.clicked.connect(self.new_planned_expense)
         self.btn_delete.clicked.connect(self.delete_planned_expense)
@@ -36,16 +42,30 @@ class DlgPlannedExpenses(QDialog, Ui_dlg_planned_expenses):
         self.account_selection_changed()
 
     def account_selection_changed(self):
+        """ Updates the planned expenses table if the selected account has changed or if an account has been added, updated or deleted. """
         idx = self.cmb_accounts.currentIndex()
-        self.current_account = self.accounts[idx]
-        self.planned_expenses = self.db.get_planned_expenses_for_account(account_id=self.current_account.id)
-        self.tbl_planned_expenses.clearContents()
-        self.tbl_planned_expenses.setRowCount(len(self.planned_expenses))
-        for idx, planned_expense in enumerate(self.planned_expenses):
-            self.tbl_planned_expenses.setItem(idx, 0, QTableWidgetItem(str(planned_expense.PlannedExpenses.id)))
-            self.tbl_planned_expenses.setItem(idx, 1, QTableWidgetItem(planned_expense.PlannedExpenses.name))
-            self.tbl_planned_expenses.setItem(idx, 2, QTableWidgetItem(planned_expense.ExpenseCategories.main_category))
-            self.tbl_planned_expenses.setItem(idx, 3, QTableWidgetItem(planned_expense.ExpenseCategories.sub_category))
+        try:
+            self.current_account = self.accounts[idx]
+            self.planned_expenses = self.db.get_planned_expenses_for_account(account_id=self.current_account.id)
+            self.tbl_planned_expenses.clearContents()
+            self.tbl_planned_expenses.setRowCount(len(self.planned_expenses))
+            for idx, planned_expense in enumerate(self.planned_expenses):
+                self.tbl_planned_expenses.setItem(idx, 0, QTableWidgetItem(str(planned_expense.PlannedExpenses.id)))
+                self.tbl_planned_expenses.setItem(idx, 1, QTableWidgetItem(planned_expense.PlannedExpenses.name))
+                self.tbl_planned_expenses.setItem(idx, 2, QTableWidgetItem(planned_expense.ExpenseCategories.main_category))
+                self.tbl_planned_expenses.setItem(idx, 3, QTableWidgetItem(planned_expense.ExpenseCategories.sub_category))
+        # No account exists yet
+        except IndexError:
+            print(f'Planned Expenses Dialog: No account exists.')
+
+    def table_selection_changed(self):
+        """ Updates the button states depending on the selection state on the table. """
+        if self.tbl_planned_expenses.selectedItems():
+            self.btn_edit.setEnabled(True)
+            self.btn_delete.setEnabled(True)
+        else:
+            self.btn_edit.setEnabled(False)
+            self.btn_delete.setEnabled(False)
 
     def new_planned_expense(self):
         dlg = DlgPlannedExpensesEdit(self.current_account.id, None)

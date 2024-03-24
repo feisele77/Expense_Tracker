@@ -2,7 +2,23 @@ from datetime import datetime
 import os
 import shutil
 import babel.numbers
-from expensestracker import cfg
+
+
+DATA_DIR = 'ExpenseTrackerTest'
+
+
+def get_data_dir():
+    return os.path.join(os.getenv('HOMEDRIVE'), os.getenv('HOMEPATH'), f'AppData\\Roaming\\{DATA_DIR}')
+
+
+def create_app_folders():
+    """ Checks if the folders for the app exists in the user directory, and creates them if not. """
+    data_dir = get_data_dir()
+    if not os.path.exists(data_dir):
+        os.mkdir(data_dir)
+    archive_dir = os.path.join(data_dir, 'archive')
+    if not os.path.exists(archive_dir):
+        os.mkdir(archive_dir)
 
 
 def clean_amount(amount_str: str) -> str:
@@ -34,6 +50,15 @@ def convert_date(date_str: str, date_format: str) -> datetime:
 def make_db_backup():
     """ Makes a copy of the database with the current timestamp. """
     timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
-    database = os.path.join(cfg.get_data_dir(), 'expenses.db')
-    database_copy = os.path.join(cfg.get_data_dir(), f'expenses_{timestamp}.db')
-    shutil.copy(database, database_copy)
+    database = os.path.join(get_data_dir(), 'expenses.db')
+    database_copy = os.path.join(get_data_dir(), f'expenses_{timestamp}.db')
+    if os.path.exists(database):
+        shutil.copy(database, database_copy)
+
+
+def archive_import_file(filepath: str):
+    """ Save a copy of the imported expense file with a timestamp. """
+    timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+    filename = ''.join((timestamp, '_', os.path.basename(filepath)))
+    targetpath = os.path.join(get_data_dir(), 'archive', filename)
+    shutil.copy(filepath, targetpath)
