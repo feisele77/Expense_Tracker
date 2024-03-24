@@ -32,6 +32,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.spn_amount.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.dat_expense_date.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.tabwidget.setTabPosition(QTabWidget.TabPosition.West)
+        self.tab_expensetable.activateWindow()
 
         # Setup the expense table
         self.tbl_expenses.setColumnWidth(1, int(self.cfg.get_value('expense_table', 'col_date')))
@@ -108,7 +109,6 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
 
     def account_selection_changed(self):
         """ Trigged when the user changes the account selection on the main screen. """
-        print('account_selection_changed called')
         # Activate or deactivate the import functionality depending on the account setting for file import
         try:
             if self.db.is_import_enabled_for_account(self.get_current_account_id()):
@@ -320,7 +320,6 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
     def update_expense_table(self):
         """ Populates the expenses table with the data for the given account id.
         Scrolls to the given index if given, otherwise scrolls to the last entry. """
-        print('update_expense_table called')
         self.tbl_expenses.clearContents()
         self.expenses = self.db.get_expenses_for_account(self.get_current_account_id())
         self.tbl_expenses.setRowCount(len(self.expenses))

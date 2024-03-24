@@ -87,4 +87,3 @@ class HistoryByMonth(QChart):
         series.attachAxis(axis_y)
 
         self.setMinimumSize(QSizeF(width - 70, height - 150))
-        print(width, height)
