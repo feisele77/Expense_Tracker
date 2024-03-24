@@ -1,9 +1,0 @@
-Todo For V1.1:
-# TODO: Planned Expenses matching: Add different options on how to match: Which fields (date, amount, category), or name matches like in the category mapping
-# TODO: Consider the frequency for planned expenses (currently its run every month, regardless of the frequency)
-# TODO: Different UI look as option (dark mode vs. light mode). Apply darkmode directly without qdarkstyle
-# TODO: Add option to have separate columns in import file for pos/neg amount
-# TODO: Check compatibility with Linux
-# TODO: Change configuration of columns for account import files
-# TODO: CSV Export of expenses
-# TODO: Add option in category mapping manager to recategorize all expenses (or only the ones current uncategorized)
