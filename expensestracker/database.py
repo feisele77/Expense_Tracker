@@ -205,7 +205,8 @@ class Database:
 
     def get_expenses_for_chart(self, account_id: int):
         """ Returns a list of (month of expense, expense amount) for the given account. """
-        expenses = self.session.query(Expenses).filter_by(account_id=account_id)
+        end_of_month = datetime(datetime.now().year, datetime.now().month, 1) + relativedelta(months=1) - relativedelta(days=1)
+        expenses = self.session.query(Expenses).filter_by(account_id=account_id).filter(Expenses.date <= end_of_month)
         data = []
         for expense in expenses:
             record = (expense.date.strftime('%Y-%m'), expense.amount)

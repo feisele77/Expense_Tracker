@@ -6,15 +6,17 @@ from dateutil.relativedelta import relativedelta
 from PyQt6.QtGui import QColor, QIcon
 from PyQt6.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QFileDialog, QTableWidgetItem, QTabWidget, QMessageBox
 from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCharts import QChartView
+
 import pandas
 import numpy
 import qdarkstyle
 
 from ui import ui_mainwin, DlgAccountManager, DlgCategoryManager, DlgCategoryMapping, DlgPlannedExpenses, DlgAbout, DlgSetting
-from expensestracker import importer, cfg, mpl, tools
+from expensestracker import importer, cfg, tools, charts
 from expensestracker.database import Database, Expenses
 
-__version__ = 'v20240318'
+__version__ = 'v20240324'
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
@@ -52,10 +54,6 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.dat_pivot_datefrom.setDate(datetime(datetime.now().year, 1, 1))
         self.dat_pivot_dateto.setDate(datetime(datetime.now().year, 12, 31))
 
-        # Setup the charts tab
-        self.chart_canvas = mpl.MPLCanvas(self, width=10, height=7, dpi=100)
-        self.chart_layout.addChildWidget(self.chart_canvas)
-
         # Variable initialisation
         self.db = Database()
         self.expenses = None
@@ -86,7 +84,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.update_account_selector()
         self.process_planned_expenses()
         self.account_selection_changed()
-        self.draw_charts()
+        self.update_chart()
 
     def get_current_account_id(self):
         """ Returns the account id of the account that is currently selected on the main screen. """
@@ -110,6 +108,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
 
     def account_selection_changed(self):
         """ Trigged when the user changes the account selection on the main screen. """
+        print('account_selection_changed called')
         # Activate or deactivate the import functionality depending on the account setting for file import
         try:
             if self.db.is_import_enabled_for_account(self.get_current_account_id()):
@@ -122,6 +121,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.update_expense_table()
         self.update_pivot()
         self.update_categories()
+        self.update_chart()
         # Update the fields showing the account balance
         current_balance_all, current_balance_account, monthend_balance_all, monthend_balance_account = self.db.get_balances(self.get_current_account_id())
         self.txt_current_balance.setText(f'{current_balance_account} €')
@@ -320,6 +320,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
     def update_expense_table(self):
         """ Populates the expenses table with the data for the given account id.
         Scrolls to the given index if given, otherwise scrolls to the last entry. """
+        print('update_expense_table called')
         self.tbl_expenses.clearContents()
         self.expenses = self.db.get_expenses_for_account(self.get_current_account_id())
         self.tbl_expenses.setRowCount(len(self.expenses))
@@ -334,7 +335,6 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             self.tbl_expenses.setItem(idx, 6, QTableWidgetItem(row.ExpenseCategories.main_category))
             self.tbl_expenses.setItem(idx, 7, QTableWidgetItem(row.ExpenseCategories.sub_category))
             self.tbl_expenses.setItem(idx, 8, QTableWidgetItem(f'{row.Expenses.comment}'))
-            self.tbl_expenses.setItem(idx, 9, QTableWidgetItem(str(row.Expenses.future)))
             # Set a different background colour for planned future expenses
             if row.Expenses.future:
                 for col in range(self.tbl_expenses.columnCount()):
@@ -421,15 +421,16 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
                     )
                     self.db.upsert_expense(planned_expense_entry)
                     added_planned_expenses = added_planned_expenses + 1
-        self.account_selection_changed()
         if added_planned_expenses:
             self.statusbar.showMessage(f'Added {added_planned_expenses} new planned expenses...')
 
-    def draw_charts(self):
-        data = self.db.get_expenses_for_chart(1)
-        df = pandas.DataFrame.from_records(data, columns=['Month', 'Amount'])
-        pivot = df.pivot_table(values=['Amount'], columns=['Month'], aggfunc=numpy.sum)
-        self.chart_canvas.axes.plot(pivot)
+    def update_chart(self):
+        data = self.db.get_expenses_for_chart(self.get_current_account_id())
+        # chart = charts.SumByMonth(data)
+        start_balance = self.db.get_account_by_id(self.get_current_account_id()).balance
+        chart = charts.HistoryByMonth(data, start_balance, self.width(), self.height())
+        chartview = QChartView(chart)
+        self.chart_layout.addChildWidget(chartview)
 
     def open_accountmanager(self):
         """ Open the account manager dialog. Refresh the account selector, actions and expense/pivot tables. """

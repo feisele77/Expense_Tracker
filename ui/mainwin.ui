@@ -145,11 +145,8 @@
       </item>
       <item>
        <widget class="QTabWidget" name="tabwidget">
-        <property name="tabPosition">
-         <enum>QTabWidget::North</enum>
-        </property>
         <property name="currentIndex">
-         <number>0</number>
+         <number>2</number>
         </property>
         <widget class="QWidget" name="tab_expensetable">
          <attribute name="title">
@@ -213,11 +210,6 @@
             <column>
              <property name="text">
               <string>Comment</string>
-             </property>
-            </column>
-            <column>
-             <property name="text">
-              <string>Future</string>
              </property>
             </column>
            </widget>
@@ -665,9 +657,73 @@
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
            <widget class="QWidget" name="chart_central_widget" native="true">
-            <layout class="QVBoxLayout" name="verticalLayout_10">
+            <layout class="QHBoxLayout" name="horizontalLayout_9">
              <item>
-              <layout class="QVBoxLayout" name="chart_layout"/>
+              <layout class="QVBoxLayout" name="chart_area">
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_8">
+                 <item>
+                  <widget class="QLabel" name="label_11">
+                   <property name="maximumSize">
+                    <size>
+                     <width>100</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>Chart Type </string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QComboBox" name="cmb_chart_type">
+                   <property name="minimumSize">
+                    <size>
+                     <width>500</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>500</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_4">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QVBoxLayout" name="chart_layout">
+                 <item>
+                  <spacer name="verticalSpacer_4">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>40</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                </layout>
+               </item>
+              </layout>
              </item>
             </layout>
            </widget>

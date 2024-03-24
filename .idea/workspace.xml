@@ -4,21 +4,15 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="eac7f8fc-6152-4cf5-84ff-b9f30a0c1c60" name="Changes" comment="Improved pivot table UI. Added security question when deleting entries.">
-      <change afterPath="$PROJECT_DIR$/ui/DlgSetting.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/dlg_settings.ui" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ui/ui_settings.py" afterDir="false" />
+    <list default="true" id="eac7f8fc-6152-4cf5-84ff-b9f30a0c1c60" name="Changes" comment="Fixes for v1.0">
+      <change afterPath="$PROJECT_DIR$/expensestracker/charts.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Expense Tracker.py" beforeDir="false" afterPath="$PROJECT_DIR$/Expense Tracker.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TODO.txt" beforeDir="false" afterPath="$PROJECT_DIR$/TODO.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/expensestracker/cfg.py" beforeDir="false" afterPath="$PROJECT_DIR$/expensestracker/cfg.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/expensestracker/database.py" beforeDir="false" afterPath="$PROJECT_DIR$/expensestracker/database.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/expensestracker/mpl.py" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/expensestracker/tools.py" beforeDir="false" afterPath="$PROJECT_DIR$/expensestracker/tools.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/DlgAccountEditor.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/DlgAccountEditor.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/DlgAccountManager.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/DlgAccountManager.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/DlgPlannedExpenses.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/DlgPlannedExpenses.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/dlg_account_editor.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/dlg_account_editor.ui" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ui/ui_account_editor.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/ui_account_editor.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/mainwin.ui" beforeDir="false" afterPath="$PROJECT_DIR$/ui/mainwin.ui" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ui/ui_mainwin.py" beforeDir="false" afterPath="$PROJECT_DIR$/ui/ui_mainwin.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +44,7 @@
     </option>
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
@@ -70,6 +64,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
+    "run.code.analysis.last.selected.profile": "pProject Default",
     "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
@@ -179,13 +174,22 @@
       <option name="project" value="LOCAL" />
       <updated>1711117631560</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Fixes for v1.0">
+      <option name="closed" value="true" />
+      <created>1711282952903</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1711282952903</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial" />
     <MESSAGE value="Dialogs for Planned Expenses and Category Mappings" />
     <MESSAGE value="Improved pivot table UI. Added security question when deleting entries." />
-    <option name="LAST_COMMIT_MESSAGE" value="Improved pivot table UI. Added security question when deleting entries." />
+    <MESSAGE value="Fixes for v1.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixes for v1.0" />
   </component>
 </project>

@@ -4,7 +4,7 @@ import shutil
 import babel.numbers
 
 
-DATA_DIR = 'ExpenseTrackerTest'
+DATA_DIR = 'ExpenseTracker'
 
 
 def get_data_dir():
