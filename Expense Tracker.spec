@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['ExpensesTracker.py'],
+    ['Expense Tracker.py'],
     pathex=[],
     binaries=[],
     datas=[],
@@ -26,7 +26,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='ExpensesTracker',
+    name='Expense Tracker',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

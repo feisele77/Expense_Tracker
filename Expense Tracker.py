@@ -6,7 +6,6 @@ from dateutil.relativedelta import relativedelta
 from PyQt6.QtGui import QColor, QIcon
 from PyQt6.QtWidgets import QMainWindow, QApplication, QAbstractItemView, QFileDialog, QTableWidgetItem, QTabWidget, QMessageBox
 from PyQt6.QtCore import QSize, Qt
-from PyQt6.QtCharts import QChartView
 
 import pandas
 import numpy
@@ -16,7 +15,7 @@ from ui import ui_mainwin, DlgAccountManager, DlgCategoryManager, DlgCategoryMap
 from expensestracker import importer, cfg, tools, charts
 from expensestracker.database import Database, Expenses
 
-__version__ = 'v20240324'
+__version__ = 'v1.0'
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
@@ -63,6 +62,10 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.current_expense = None
         self.current_index = None
 
+        # Chart initialization
+        self.chart = None
+        self.cmb_chart_type.addItems(['Monthly Sum', 'History'])
+
         # Signals & Slots
         self.tbl_expenses.itemSelectionChanged.connect(self.expense_selection_changed)
         self.actionQuit.triggered.connect(self.quit)
@@ -79,6 +82,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.btn_new_record.clicked.connect(self.new_record)
         self.btn_save_record.clicked.connect(self.save_record)
         self.btn_pivot_apply.clicked.connect(self.account_selection_changed)
+        self.cmb_chart_type.currentTextChanged.connect(self.update_chart)
 
         # Data initialization
         self.deactivate_actions_if_no_accounts()
@@ -119,15 +123,16 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             self.actionImport_expenses.setEnabled(False)
         # Update the entries in the expense table, pivot and category dropdown for the new account selection
         self.update_expense_table()
+        self.scroll_to_current_date()
         self.update_pivot()
         self.update_categories()
         self.update_chart()
         # Update the fields showing the account balance
         current_balance_all, current_balance_account, monthend_balance_all, monthend_balance_account = self.db.get_balances(self.get_current_account_id())
-        self.txt_current_balance.setText(f'{current_balance_account} €')
-        self.txt_month_end_balance.setText(f'{monthend_balance_account} €')
-        self.txt_current_balance_all.setText(f'{current_balance_all} €')
-        self.txt_month_end_balance_all.setText(f'{monthend_balance_all} €')
+        self.txt_current_balance.setText(f'{current_balance_account:.2f} €')
+        self.txt_month_end_balance.setText(f'{monthend_balance_account:.2f} €')
+        self.txt_current_balance_all.setText(f'{current_balance_all:.2f} €')
+        self.txt_month_end_balance_all.setText(f'{monthend_balance_all:.2f} €')
 
     def update_account_selector(self):
         """ Updates the dropdown box with the accounts. Triggered after changes to the existing accounts. """
@@ -148,22 +153,24 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
     def expense_selection_changed(self):
         """ Triggered when the user changes the selected row on the list of expenses. Writes the values of the selected
         entry to the edit fields on the screen. """
-        try:
-            self.enable_edit_fields(True)
-            expense_id = int(self.tbl_expenses.item(self.tbl_expenses.selectedItems()[0].row(), 0).text())
-            self.current_expense = self.db.get_expense_by_id(expense_id)
-            self.dat_expense_date.setDate(self.current_expense.date)
-            self.txt_name.setText(self.current_expense.name)
-            self.txt_purpose.setPlainText(str(self.current_expense.purpose))
-            self.txt_iban.setText(str(self.current_expense.iban))
-            self.spn_amount.setValue(self.current_expense.amount)
-            self.txt_comment.setPlainText(str(self.current_expense.comment))
-            self.chk_future.setChecked(self.current_expense.future)
-            self.cmb_category.setCurrentIndex(self.expense_categories_mapping[self.current_expense.category_id])
-            self.btn_save_record.setEnabled(True)
-            self.btn_del_record.setEnabled(True)
-        except BaseException as e:
-            print(f'Error loading record for editing: {e}')
+        # Check if an item is selected, as the itemSelectionChanged signal also triggers if all items got unselected.
+        if self.tbl_expenses.selectedItems():
+            try:
+                self.enable_edit_fields(True)
+                expense_id = int(self.tbl_expenses.item(self.tbl_expenses.selectedItems()[0].row(), 0).text())
+                self.current_expense = self.db.get_expense_by_id(expense_id)
+                self.dat_expense_date.setDate(self.current_expense.date)
+                self.txt_name.setText(self.current_expense.name)
+                self.txt_purpose.setPlainText(str(self.current_expense.purpose))
+                self.txt_iban.setText(str(self.current_expense.iban))
+                self.spn_amount.setValue(self.current_expense.amount)
+                self.txt_comment.setPlainText(str(self.current_expense.comment))
+                self.chk_future.setChecked(self.current_expense.future)
+                self.cmb_category.setCurrentIndex(self.expense_categories_mapping[self.current_expense.category_id])
+                self.btn_save_record.setEnabled(True)
+                self.btn_del_record.setEnabled(True)
+            except IndexError as e:
+                print(f'Error loading record for editing: {e}')
 
     def enable_edit_fields(self, set_to_enabled: bool):
         """ Enable the fields for editing or creating a new expense record."""
@@ -176,10 +183,8 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.chk_future.setEnabled(set_to_enabled)
         self.cmb_category.setEnabled(set_to_enabled)
 
-    def new_record(self):
-        """ Initialize the edit fields for creation of new expense record. """
-        self.enable_edit_fields(True)
-        self.tbl_expenses.clearSelection()
+    def initialize_edit_fields(self):
+        """ Sets the edit fields for expense records to initial values. """
         self.txt_name.clear()
         self.txt_iban.clear()
         self.txt_purpose.clear()
@@ -187,45 +192,34 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
         self.spn_amount.setValue(0)
         self.dat_expense_date.setDate(datetime.now())
         self.chk_future.setChecked(False)
+
+    def new_record(self):
+        """ Initialize the edit fields for creation of new expense record. """
+        self.enable_edit_fields(True)
+        self.tbl_expenses.clearSelection()
+        self.initialize_edit_fields()
         self.current_expense = None
+        self.btn_save_record.setEnabled(True)
 
     def save_record(self):
         """ Saves the edited or newly created expense record. """
-        if self.current_expense:
-            self.current_index = self.save_edited_record()
-        else:
-            self.save_new_record()
+        if not self.current_expense:
+            self.current_expense = Expenses()
+        self.current_expense.account_id = self.get_current_account_id()
+        self.current_expense.name = self.txt_name.text()
+        self.current_expense.iban = self.txt_iban.text()
+        self.current_expense.purpose = self.txt_purpose.toPlainText()
+        self.current_expense.comment = self.txt_comment.toPlainText()
+        self.current_expense.amount = self.spn_amount.value()
+        self.current_expense.date = self.dat_expense_date.date().toPyDate()
+        self.current_expense.category_id = self.cmb_category.itemData(self.cmb_category.currentIndex())
+        self.current_expense.future = self.chk_future.isChecked()
+        expense_id = self.db.upsert_expense(self.current_expense)
         self.account_selection_changed()
-        self.new_record()
-
-    def save_new_record(self):
-        """ Save a new record to the database. """
-        expense = Expenses()
-        expense.account_id = self.get_current_account_id()
-        expense.name = self.txt_name.text()
-        expense.iban = self.txt_iban.text()
-        expense.purpose = self.txt_purpose.toPlainText()
-        expense.comment = self.txt_comment.toPlainText()
-        expense.amount = self.spn_amount.value()
-        expense.date = self.dat_expense_date.date().toPyDate()
-        expense.category_id = self.cmb_category.itemData(self.cmb_category.currentIndex())
-        expense.future = self.chk_future.isChecked()
-        self.db.upsert_expense(expense)
-
-    def save_edited_record(self):
-        """ Save the changes to an edited record to the database. """
-        expense = self.current_expense
-        expense.name = self.txt_name.text()
-        expense.iban = self.txt_iban.text()
-        expense.purpose = self.txt_purpose.toPlainText()
-        expense.comment = self.txt_comment.toPlainText()
-        expense.amount = self.spn_amount.value()
-        expense.date = self.dat_expense_date.date().toPyDate()
-        expense.category_id = self.cmb_category.itemData(self.cmb_category.currentIndex())
-        expense.future = self.chk_future.isChecked()
-        current_idx = self.tbl_expenses.currentIndex()
-        self.db.upsert_expense(expense)
-        return current_idx
+        self.scroll_to_expense_id(expense_id, True)
+        self.enable_edit_fields(False)
+        self.btn_save_record.setEnabled(False)
+        self.initialize_edit_fields()
 
     def delete_selected_record(self):
         """ Deletes the record selected in the expenses table. """
@@ -234,6 +228,7 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             expense_id = self.current_expense.id
             self.db.delete_expense(expense_id)
             self.account_selection_changed()
+            self.scroll_to_current_date()
 
     def scroll_to_current_date(self):
         """ Scrolls the expense table to the first item that is of a later date than today, or to the last item. """
@@ -248,6 +243,16 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             self.tbl_expenses.scrollToItem(item)
         else:
             self.tbl_expenses.scrollToBottom()
+
+    def scroll_to_expense_id(self, expense_id: int, select_expense: bool):
+        """ Scrolls the expense table to the expense with the given id. Selects the expense if select_expense = True. """
+        for row_idx in range(self.tbl_expenses.rowCount()):
+            id_item = self.tbl_expenses.item(row_idx, 0)
+            if id_item.text() == str(expense_id):
+                self.tbl_expenses.scrollToItem(id_item)
+                if select_expense:
+                    self.tbl_expenses.selectRow(row_idx)
+                break
 
     def import_get_importdata(self):
         """ Opens the open file dialog for import of expense files, reads the data and returns it. """
@@ -330,7 +335,8 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             self.tbl_expenses.setItem(idx, 2, QTableWidgetItem(row.Expenses.name))
             self.tbl_expenses.setItem(idx, 3, QTableWidgetItem(row.Expenses.purpose))
             self.tbl_expenses.setItem(idx, 4, QTableWidgetItem(row.Expenses.iban))
-            self.tbl_expenses.setItem(idx, 5, QTableWidgetItem(f"{row.Expenses.amount} €"))
+            self.tbl_expenses.setItem(idx, 5, QTableWidgetItem(f"{row.Expenses.amount:.2f} €"))
+            self.tbl_expenses.item(idx, 5).setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             self.tbl_expenses.setItem(idx, 6, QTableWidgetItem(row.ExpenseCategories.main_category))
             self.tbl_expenses.setItem(idx, 7, QTableWidgetItem(row.ExpenseCategories.sub_category))
             self.tbl_expenses.setItem(idx, 8, QTableWidgetItem(f'{row.Expenses.comment}'))
@@ -424,12 +430,14 @@ class MainWin(QMainWindow, ui_mainwin.Ui_mainwin):
             self.statusbar.showMessage(f'Added {added_planned_expenses} new planned expenses...')
 
     def update_chart(self):
+        """ Updates the chart depending on the account and the selected chart type. """
         data = self.db.get_expenses_for_chart(self.get_current_account_id())
-        # chart = charts.SumByMonth(data)
-        start_balance = self.db.get_account_by_id(self.get_current_account_id()).balance
-        chart = charts.HistoryByMonth(data, start_balance, self.width(), self.height())
-        chartview = QChartView(chart)
-        self.chart_layout.addChildWidget(chartview)
+        if self.cmb_chart_type.currentText() == 'History':
+            start_balance = self.db.get_account_by_id(self.get_current_account_id()).balance
+            self.chart = charts.HistoryByMonth(data, start_balance, self.width(), self.height())
+        elif self.cmb_chart_type.currentText() == 'Monthly Sum':
+            self.chart = charts.SumByMonth(data)
+        self.chartview.setChart(self.chart)
 
     def open_accountmanager(self):
         """ Open the account manager dialog. Refresh the account selector, actions and expense/pivot tables. """

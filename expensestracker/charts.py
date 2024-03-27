@@ -16,33 +16,34 @@ class SumByMonth(QChart):
         df = pandas.DataFrame.from_records(data, columns=['Month', 'Amount'])
         pivot = df.pivot_table(values=['Amount'], columns=['Month'], aggfunc=numpy.sum)
         data_dict = pivot.to_dict()
-        months = []
-        values = []
-        for month in data_dict:
-            months.append(month)
-            values.append(data_dict[month]['Amount'])
+        if data_dict:
+            months = []
+            values = []
+            for month in data_dict:
+                months.append(month)
+                values.append(data_dict[month]['Amount'])
 
-        bar_set = QBarSet("Default")
-        bar_set.append(values)
-        bar_series = QBarSeries()
-        bar_series.append(bar_set)
-        self.addSeries(bar_series)
+            bar_set = QBarSet("Default")
+            bar_set.append(values)
+            bar_series = QBarSeries()
+            bar_series.append(bar_set)
+            self.addSeries(bar_series)
 
-        axis_x = QBarCategoryAxis()
-        axis_x.append(months)
-        self.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
-        bar_series.attachAxis(axis_x)
+            axis_x = QBarCategoryAxis()
+            axis_x.append(months)
+            self.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
+            bar_series.attachAxis(axis_x)
 
-        axis_y = QValueAxis()
-        max_y = (max(values) // 500) * 500 + 500
-        min_y = (min(values) // 500) * 500 - 500
-        axis_y.setRange(min_y, max_y)
-        axis_y.setTickCount(int((abs(min_y) + abs(max_y)) // 500 + 1))
-        axis_y.setMinorTickCount(1)
-        self.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
-        bar_series.attachAxis(axis_y)
+            axis_y = QValueAxis()
+            max_y = (max(values) // 500) * 500 + 500
+            min_y = (min(values) // 500) * 500 - 500
+            axis_y.setRange(min_y, max_y)
+            axis_y.setTickCount(int((abs(min_y) + abs(max_y)) // 500 + 1))
+            axis_y.setMinorTickCount(1)
+            self.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
+            bar_series.attachAxis(axis_y)
 
-        self.setMinimumSize(QSizeF(1800, 1000))
+            self.setMinimumSize(QSizeF(1800, 1000))
 
 
 class HistoryByMonth(QChart):
@@ -58,32 +59,33 @@ class HistoryByMonth(QChart):
         df = pandas.DataFrame.from_records(data, columns=['Month', 'Amount'])
         pivot = df.pivot_table(values=['Amount'], columns=['Month'], aggfunc=numpy.sum)
         data_dict = pivot.to_dict()
-        months = []
-        values = []
-        previous_value = start_balance
-        for month in data_dict:
-            months.append(month)
-            accumulated_value = data_dict[month]['Amount'] + previous_value
-            values.append(round(accumulated_value, 2))
-            previous_value = accumulated_value
+        if data_dict:
+            months = []
+            values = []
+            previous_value = start_balance
+            for month in data_dict:
+                months.append(month)
+                accumulated_value = data_dict[month]['Amount'] + previous_value
+                values.append(round(accumulated_value, 2))
+                previous_value = accumulated_value
 
-        series = QLineSeries()
-        for idx, value in enumerate(values):
-            series.append(idx, value)
+            series = QLineSeries()
+            for idx, value in enumerate(values):
+                series.append(idx, value)
 
-        self.addSeries(series)
+            self.addSeries(series)
 
-        axis_x = QBarCategoryAxis()
-        axis_x.append(months)
-        self.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
-        series.attachAxis(axis_x)
+            axis_x = QBarCategoryAxis()
+            axis_x.append(months)
+            self.addAxis(axis_x, Qt.AlignmentFlag.AlignBottom)
+            series.attachAxis(axis_x)
 
-        axis_y = QValueAxis()
-        max_y = max(values)
-        min_y = min(values)
-        axis_y.setRange(min_y, max_y)
-        axis_y.setTickCount(7)
-        self.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
-        series.attachAxis(axis_y)
+            axis_y = QValueAxis()
+            max_y = max(values)
+            min_y = min(values)
+            axis_y.setRange(min_y, max_y)
+            axis_y.setTickCount(7)
+            self.addAxis(axis_y, Qt.AlignmentFlag.AlignLeft)
+            series.attachAxis(axis_y)
 
-        self.setMinimumSize(QSizeF(width - 70, height - 150))
+            self.setMinimumSize(QSizeF(width - 70, height - 150))

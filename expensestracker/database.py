@@ -141,11 +141,12 @@ class Database:
         """ Returns the expense details for a given id. """
         return self.session.query(Expenses).filter_by(id=expense_id).first()
 
-    def upsert_expense(self, expense: Expenses) -> None:
+    def upsert_expense(self, expense: Expenses) -> int:
         """ Adds a new or updates an existing expense record to the database. """
         try:
             self.session.add(expense)
             self.session.commit()
+            return expense.id
         except Exception as e:
             print(f'Error add/updating the expense record with id {expense.id} to the database: {e}')
 
